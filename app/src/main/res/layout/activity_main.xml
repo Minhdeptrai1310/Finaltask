@@ -25,7 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:columnCount="2"
-        android:padding="8dp"
+        android:padding="16dp"
         android:background="@android:color/white"
         app:layout_constraintTop_toBottomOf="@id/tvDate"
         app:layout_constraintStart_toStartOf="parent"
@@ -34,17 +34,17 @@
         <!-- Sức khỏe -->
         <TextView
             android:id="@+id/tvHealth"
-            android:text="@string/health"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:padding="16dp"
-            android:gravity="center"
-            android:textSize="16sp"
-            android:background="@android:color/holo_blue_light"
-            android:textColor="#000000"
+            android:layout_height="89dp"
+            android:layout_rowWeight="1"
             android:layout_columnWeight="1"
-            android:layout_rowWeight="1"/>
+            android:layout_margin="8dp"
+            android:background="@drawable/rounded_txtview"
+            android:gravity="start|bottom"
+            android:padding="16dp"
+            android:text="@string/health"
+            android:textColor="#000000"
+            android:textSize="12sp" />
 
         <!-- Công việc -->
         <TextView
@@ -54,9 +54,9 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:padding="16dp"
-            android:gravity="center"
-            android:textSize="16sp"
-            android:background="@android:color/holo_green_light"
+            android:gravity="start|bottom"
+            android:textSize="12sp"
+            android:background="@drawable/congviec"
             android:textColor="#000000"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"/>
@@ -64,17 +64,17 @@
         <!-- Sức khỏe tinh thần -->
         <TextView
             android:id="@+id/tvMental"
-            android:text="@string/mental"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:padding="16dp"
-            android:gravity="center"
-            android:textSize="16sp"
-            android:background="@android:color/holo_purple"
-            android:textColor="#000000"
+            android:layout_height="92dp"
+            android:layout_rowWeight="1"
             android:layout_columnWeight="1"
-            android:layout_rowWeight="1"/>
+            android:layout_margin="8dp"
+            android:background="@drawable/mentalhealth"
+            android:gravity="start|bottom"
+            android:padding="16dp"
+            android:text="@string/mental"
+            android:textColor="#000000"
+            android:textSize="12sp" />
 
         <!-- Khác -->
         <TextView
@@ -84,9 +84,9 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:padding="16dp"
-            android:gravity="center"
-            android:textSize="16sp"
-            android:background="@android:color/darker_gray"
+            android:gravity="start|bottom"
+            android:textSize="12sp"
+            android:background="@drawable/other"
             android:textColor="#000000"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"/>
@@ -113,7 +113,7 @@
         android:layout_margin="16dp"
         android:src="@android:drawable/ic_input_add"
         android:contentDescription="@string/add_task_desc"
-        app:backgroundTint="@color/purple_500"
+        app:backgroundTint="#ED75FF"
         app:elevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
