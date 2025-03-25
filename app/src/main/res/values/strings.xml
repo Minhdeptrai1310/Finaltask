@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Finaltask</string>
+    <string name="today">Hôm nay, 14 Tháng 3</string>
+    <string name="health">Sức khỏe</string>
+    <string name="work">Công việc</string>
+    <string name="mental">Sức khỏe tinh thần</string>
+    <string name="others">Khác</string>
+    <string name="add_task_desc">Thêm công việc</string>
+    <string name="add_task">Thêm công việc</string>
+    <string name="hint_task_content">Nhập nội dung công việc</string>
+    <string name="save_task">Lưu</string>
+    <string name="selected_date">Ngày đã chọn: %s</string>
+</resources>
