@@ -10,4 +10,11 @@
     <string name="hint_task_content">Nhập nội dung công việc</string>
     <string name="save_task">Lưu</string>
     <string name="selected_date">Ngày đã chọn: %s</string>
+    <string-array name="task_categories">
+        <item>Sức khỏe</item>
+        <item>Công việc</item>
+        <item>Sức khỏe tinh thần</item>
+        <item>Khác</item>
+    </string-array>
+
 </resources>

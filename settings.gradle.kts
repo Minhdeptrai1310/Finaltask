@@ -1,18 +1,13 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google() // Để Google repo ở đây
         mavenCentral()
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS) // Sửa từ FAIL_ON_PROJECT_REPOS sang PREFER_SETTINGS
     repositories {
         google()
         mavenCentral()
@@ -21,4 +16,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Finaltask"
 include(":app")
- 

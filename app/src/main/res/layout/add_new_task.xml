@@ -6,28 +6,47 @@
     android:layout_height="match_parent"
     tools:context=".AddNewTask">
 
+    <!-- EditText để nhập tên công việc -->
     <EditText
         android:id="@+id/etTaskName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Nhập tên công việc"
+        android:layout_margin="16dp"
+        android:hint="Nhập nội dung công việc"
         android:padding="12dp"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_margin="16dp"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- EditText để hiển thị và chọn ngày tháng -->
     <EditText
         android:id="@+id/etTaskDate"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Nhập ngày tháng"
+        android:layout_margin="16dp"
+        android:hint="Chọn ngày tháng"
         android:padding="12dp"
+        android:focusable="false"
+        android:clickable="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/etTaskName"
-        android:layout_margin="16dp"/>
+        android:text="Chọn ngày" />
 
+    <!-- Spinner để chọn loại công việc -->
+    <Spinner
+        android:id="@+id/spinnerTaskCategory"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:minHeight="48dp"
+        android:padding="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/etTaskDate"
+        app:layout_constraintBottom_toTopOf="@id/btnSave" />
+
+    <!-- Button để lưu công việc -->
     <Button
         android:id="@+id/btnSave"
         android:layout_width="0dp"
@@ -35,6 +54,6 @@
         android:text="Lưu công việc"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etTaskDate"
+        app:layout_constraintTop_toBottomOf="@id/spinnerTaskCategory"
         android:layout_margin="16dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
