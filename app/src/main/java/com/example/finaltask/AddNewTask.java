@@ -29,82 +29,84 @@ public class AddNewTask extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_new_task);
 
+        // Ánh xạ view
         etTaskName = findViewById(R.id.etTaskName);
         etTaskDate = findViewById(R.id.etTaskDate);
-        spCategory = findViewById(R.id.spinnerTaskCategory);  // Spinner để chọn loại công việc
+        spCategory = findViewById(R.id.spinnerTaskCategory); // Đảm bảo ID khớp với XML
         btnSave = findViewById(R.id.btnSave);
 
         calendar = Calendar.getInstance();
 
-        // Tạo ArrayAdapter cho Spinner
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.task_categories, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spCategory.setAdapter(adapter);
+        // Thiết lập Spinner
+        setupSpinner();
 
-        // Set listener cho chọn ngày và giờ
-        etTaskDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Hiển thị DatePicker để chọn ngày
-                new DatePickerDialog(AddNewTask.this, dateSetListener,
-                        calendar.get(Calendar.YEAR),
-                        calendar.get(Calendar.MONTH),
-                        calendar.get(Calendar.DAY_OF_MONTH)).show();
-            }
-        });
+        // Xử lý chọn ngày/giờ
+        etTaskDate.setOnClickListener(v -> showDateTimePicker());
 
-        // Lưu công việc
-        btnSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String taskName = etTaskName.getText().toString();
-                String taskCategory = spCategory.getSelectedItem().toString();
-                String taskDateTime = new SimpleDateFormat("dd MMMM yyyy HH:mm", Locale.getDefault())
-                        .format(calendar.getTime());
-
-                if (taskName.isEmpty()) {
-                    Toast.makeText(AddNewTask.this, "Tên công việc không được để trống!", Toast.LENGTH_SHORT).show();
-                } else {
-                    // Tạo đối tượng Task mới
-                    Task newTask = new Task(taskName, taskDateTime, taskCategory);
-
-                    // Gửi dữ liệu về MainActivity
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("new_task", newTask); // Trả về công việc mới
-                    setResult(RESULT_OK, resultIntent);
-
-                    finish();  // Đóng Activity AddNewTask và quay lại MainActivity
-                }
-            }
-        });
+        // Xử lý lưu task
+        btnSave.setOnClickListener(v -> saveTaskToFirestore());
     }
 
-    // Listener cho việc chọn ngày
-    private DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
-        @Override
-        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.MONTH, monthOfYear);
-            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+    private void setupSpinner() {
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this,
+                R.array.task_categories,
+                android.R.layout.simple_spinner_item
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spCategory.setAdapter(adapter);
+    }
 
-            // Hiển thị TimePicker để chọn giờ
-            new TimePickerDialog(AddNewTask.this, timeSetListener,
-                    calendar.get(Calendar.HOUR_OF_DAY),
-                    calendar.get(Calendar.MINUTE), true).show();
+    private void showDateTimePicker() {
+        new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    calendar.set(year, month, dayOfMonth);
+                    new TimePickerDialog(
+                            this,
+                            (timeView, hourOfDay, minute) -> {
+                                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                                calendar.set(Calendar.MINUTE, minute);
+                                updateDateTimeDisplay();
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            true
+                    ).show();
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        ).show();
+    }
+
+    private void updateDateTimeDisplay() {
+        String dateTimeFormat = "dd MMMM yyyy HH:mm";
+        SimpleDateFormat sdf = new SimpleDateFormat(dateTimeFormat, Locale.getDefault());
+        etTaskDate.setText(sdf.format(calendar.getTime()));
+    }
+
+    private void saveTaskToFirestore() {
+        String taskName = etTaskName.getText().toString().trim();
+        String taskCategory = spCategory.getSelectedItem().toString();
+        String taskDateTime = new SimpleDateFormat("dd MMMM yyyy HH:mm", Locale.getDefault())
+                .format(calendar.getTime());
+
+        if (taskName.isEmpty()) {
+            Toast.makeText(this, "Vui lòng nhập tên công việc", Toast.LENGTH_SHORT).show();
+            return;
         }
-    };
 
-    // Listener cho việc chọn giờ
-    private TimePickerDialog.OnTimeSetListener timeSetListener = new TimePickerDialog.OnTimeSetListener() {
-        @Override
-        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-            calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
-            calendar.set(Calendar.MINUTE, minute);
+        // Tạo task object với constructor mặc định
+        Task newTask = new Task();
+        newTask.setTaskName(taskName);
+        newTask.setTaskCategory(taskCategory);
+        newTask.setTaskDateTime(taskDateTime);
 
-            // Hiển thị ngày và giờ đã chọn
-            String selectedDateTime = new SimpleDateFormat("dd MMMM yyyy HH:mm", Locale.getDefault()).format(calendar.getTime());
-            etTaskDate.setText(selectedDateTime);  // Hiển thị ngày và giờ đã chọn
-        }
-    };
+        // Trả kết quả về MainActivity
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("new_task", newTask);
+        setResult(RESULT_OK, resultIntent);
+        finish();
+    }
 }

@@ -2,31 +2,28 @@ package com.example.finaltask;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private TaskAdapter taskAdapter;
-    private List<Task> taskList;
-    private FirebaseDatabase database;
-    private DatabaseReference taskRef;
+    private FirebaseFirestore db;
     private TextView tvDate;
     private FloatingActionButton fabAddTask;
 
@@ -35,71 +32,92 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Ánh xạ view
         recyclerView = findViewById(R.id.rvTask);
         tvDate = findViewById(R.id.tvDate);
-        fabAddTask = findViewById(R.id.FloatingActionButton);  // Đổi ID chính xác
-        recyclerView.setHasFixedSize(true);
+        fabAddTask = findViewById(R.id.FloatingActionButton);
+
+        // Cấu hình RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Cập nhật ngày tháng động
+        // Khởi tạo Firestore
+        db = FirebaseFirestore.getInstance();
+
+        // Cập nhật ngày tháng
         String currentDate = new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
                 .format(Calendar.getInstance().getTime());
         tvDate.setText(currentDate);
 
-        // Khởi tạo Firebase
-        database = FirebaseDatabase.getInstance();
-        taskRef = database.getReference("tasks");  // Tham chiếu đến "tasks" trong Firebase
+        // Thiết lập Firestore Recycler Adapter
+        setupRecyclerView();
 
-        // Tạo danh sách công việc và Adapter
-        taskList = new ArrayList<>();
-        taskAdapter = new TaskAdapter(taskList);
+        // Thiết lập swipe để xóa
+        setupSwipeToDelete();
+
+        // Xử lý thêm task mới
+        fabAddTask.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AddNewTask.class);
+            startActivityForResult(intent, 1);
+        });
+    }
+
+    private void setupRecyclerView() {
+        Query query = db.collection("tasks")
+                .orderBy("taskDateTime", Query.Direction.ASCENDING);
+
+        FirestoreRecyclerOptions<Task> options = new FirestoreRecyclerOptions.Builder<Task>()
+                .setQuery(query, Task.class)
+                .build();
+
+        taskAdapter = new TaskAdapter(options);
         recyclerView.setAdapter(taskAdapter);
-
-        // Lấy dữ liệu từ Firebase
-        loadTasksFromFirebase();
-
-        // Xử lý sự kiện khi nhấn nút "+"
-        fabAddTask.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, AddNewTask.class);
-                startActivityForResult(intent, 1);  // Mã yêu cầu là 1
-            }
-        });
     }
 
-    // Lấy dữ liệu từ Firebase
-    private void loadTasksFromFirebase() {
-        taskRef.addValueEventListener(new ValueEventListener() {
+    private void setupSwipeToDelete() {
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                taskList.clear();  // Xóa danh sách cũ
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Task task = snapshot.getValue(Task.class);
-                    if (task != null) {
-                        taskList.add(task);  // Thêm công việc vào danh sách
-                    }
-                }
-                taskAdapter.notifyDataSetChanged();  // Cập nhật Adapter
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                return false;
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Xử lý lỗi
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                // Lấy document ID từ vị trí swipe
+                DocumentSnapshot snapshot = taskAdapter.getSnapshots()
+                        .getSnapshot(viewHolder.getAdapterPosition());
+                db.collection("tasks").document(snapshot.getId()).delete()
+                        .addOnSuccessListener(aVoid -> Log.d("MainActivity", "Task deleted"))
+                        .addOnFailureListener(e -> Log.w("MainActivity", "Error deleting task", e));
             }
-        });
+        }).attachToRecyclerView(recyclerView);
     }
 
-    // Xử lý kết quả trả về từ AddNewTask
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
-            Task task = (Task) data.getSerializableExtra("new_task");  // Nhận công việc mới
-            if (task != null) {
-                String taskId = taskRef.push().getKey();  // Tạo ID ngẫu nhiên cho công việc
-                taskRef.child(taskId).setValue(task);  // Lưu công việc vào Firebase
+            Task newTask = (Task) data.getSerializableExtra("new_task");
+            if (newTask != null) {
+                db.collection("tasks").add(newTask)
+                        .addOnSuccessListener(documentReference ->
+                                Log.d("MainActivity", "Document added with ID: " + documentReference.getId()))
+                        .addOnFailureListener(e ->
+                                Log.w("MainActivity", "Error adding document", e));
             }
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        taskAdapter.startListening();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        taskAdapter.stopListening();
     }
 }

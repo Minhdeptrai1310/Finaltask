@@ -9,6 +9,7 @@
     <string name="add_task">Thêm công việc</string>
     <string name="hint_task_content">Nhập nội dung công việc</string>
     <string name="save_task">Lưu</string>
+    <string name="task_name_default">Tên công việc</string>
     <string name="selected_date">Ngày đã chọn: %s</string>
     <string-array name="task_categories">
         <item>Sức khỏe</item>

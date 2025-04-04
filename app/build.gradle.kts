@@ -37,6 +37,9 @@ dependencies {
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore:24.10.0")
+    implementation("com.firebaseui:firebase-ui-firestore:8.0.2")
+    implementation("it.xabaras.android:recyclerview-swipedecorator:1.4")
 
     implementation(libs.recyclerview)
     implementation("com.google.android.material:material:1.9.0")

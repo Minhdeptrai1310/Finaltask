@@ -1,25 +1,35 @@
 package com.example.finaltask;
 
+import com.google.firebase.firestore.IgnoreExtraProperties;
 import java.io.Serializable;
 
-public class Task implements Serializable {  // Thêm Serializable ở đây
-    private String taskId;
+@IgnoreExtraProperties // Thêm annotation cho Firestore
+public class Task implements Serializable {
+    private String documentId; // Thay thế taskId bằng documentId
     private String taskName;
     private String taskDateTime;
     private String taskCategory;
 
-    // Constructor mặc định
+    // Constructor mặc định (bắt buộc cho Firestore)
     public Task() {}
 
-    // Constructor với 4 tham số
+    // Constructor với 3 tham số (đã sửa lỗi logic)
     public Task(String taskName, String taskDateTime, String taskCategory) {
-        this.taskId = taskId;
         this.taskName = taskName;
         this.taskDateTime = taskDateTime;
         this.taskCategory = taskCategory;
     }
 
-    // Getter và Setter cho các trường
+    // Getter/Setter cho documentId
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+
+    // Các getter/setter khác giữ nguyên
     public String getTaskName() {
         return taskName;
     }
@@ -42,13 +52,5 @@ public class Task implements Serializable {  // Thêm Serializable ở đây
 
     public void setTaskCategory(String taskCategory) {
         this.taskCategory = taskCategory;
-    }
-
-    public String getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
     }
 }
