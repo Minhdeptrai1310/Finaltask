@@ -10,7 +10,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.google.gms:google-services:4.4.2")  // Đảm bảo có dòng này để sử dụng plugin Google services
+        classpath("com.google.gms:google-services:4.3.15")  // Đảm bảo có dòng này để sử dụng plugin Google services
     }
 }
 

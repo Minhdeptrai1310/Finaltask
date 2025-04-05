@@ -1,6 +1,6 @@
 plugins {
     id("com.android.application")
-    id("com.google.gms.google-services") // Không cần `apply plugin`
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -37,8 +37,8 @@ dependencies {
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-firestore:24.10.0")
-    implementation("com.firebaseui:firebase-ui-firestore:8.0.2")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.firebaseui:firebase-ui-firestore:7.2.0")
     implementation("it.xabaras.android:recyclerview-swipedecorator:1.4")
 
     implementation(libs.recyclerview)

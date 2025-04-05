@@ -11,6 +11,25 @@
     <string name="save_task">Lưu</string>
     <string name="task_name_default">Tên công việc</string>
     <string name="selected_date">Ngày đã chọn: %s</string>
+    <string name="confirm_password_hint">Xác nhận mật khẩu</string>
+    <string name="create_account_button">Tạo tài khoản</string>
+    <string name="create_account_button_desc">Nhấn để tạo tài khoản</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Mật khẩu</string>
+    <string name="login_button">Đăng nhập</string>
+    <string name="register_button">Đăng ký</string>
+    <string name="forgot_password_button">Quên mật khẩu?</string>
+    <string name="email_input">Nhập email</string>
+    <string name="password_input">Nhập mật khẩu</string>
+    <string name="login_button_desc">Nút đăng nhập</string>
+    <string name="register_button_desc">Nút đăng ký</string>
+    <string name="forgot_password_button_desc">Nút quên mật khẩu</string>
+    <string name="reset_password">Đặt lại mật khẩu</string>
+    <string name="email_content_description">Nhập địa chỉ email</string>
+    <string name="reset_password_request">Gửi yêu cầu</string>
+    <string name="reset_password_request_desc">Gửi yêu cầu đặt lại mật khẩu</string>
+    <string name="back_to_login">Quay lại Đăng nhập</string>
+    <string name="back_to_login_desc">Quay lại trang đăng nhập</string>
     <string-array name="task_categories">
         <item>Sức khỏe</item>
         <item>Công việc</item>
