@@ -7,19 +7,21 @@
     tools:context=".MainActivity">
 
     <!-- Nút tài khoản -->
+
+    <!-- Tiêu đề ngày tháng -->
+
     <Button
         android:id="@+id/btnAccount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:padding="8dp"
         android:text="Tài khoản"
         android:textSize="12sp"
-        android:padding="8dp"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Tiêu đề ngày tháng -->
     <TextView
         android:id="@+id/tvDate"
         android:layout_width="wrap_content"
@@ -27,7 +29,7 @@
         android:padding="16dp"
         android:text="@string/today"
         android:textColor="@android:color/black"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

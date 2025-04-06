@@ -1,5 +1,4 @@
-// NotificationHelper.java
-package com.example.finaltask;
+package com.example.finaltask.notification;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -12,6 +11,8 @@ import android.content.pm.PackageManager;
 import androidx.core.content.ContextCompat;
 import android.util.Log;
 
+import com.example.finaltask.R;
+
 public class NotificationHelper {
     private Context mContext;
     private static final String CHANNEL_ID = "task_notifications_channel";
@@ -19,15 +20,20 @@ public class NotificationHelper {
     public NotificationHelper(Context context) {
         this.mContext = context;
 
+        // Kiểm tra và tạo NotificationChannel chỉ khi cần thiết (API >= 26)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Task Notifications";
-            String description = "Channel for task notifications";
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
+
+            // Nếu channel chưa được tạo, tạo mới.
+            if (notificationManager != null && notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
+                CharSequence name = "Task Notifications";
+                String description = "Channel for task notifications";
+                int importance = NotificationManager.IMPORTANCE_HIGH;
+                NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+                channel.setDescription(description);
+
+                notificationManager.createNotificationChannel(channel);
+            }
         }
     }
 

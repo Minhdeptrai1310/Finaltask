@@ -1,10 +1,14 @@
 package com.example.finaltask;
 
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,6 +27,8 @@ import com.google.firebase.firestore.Query;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+
+import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -107,12 +113,47 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                // Lấy document ID từ vị trí swipe
-                DocumentSnapshot snapshot = taskAdapter.getSnapshots()
-                        .getSnapshot(viewHolder.getAdapterPosition());
-                db.collection("tasks").document(snapshot.getId()).delete()
-                        .addOnSuccessListener(aVoid -> Log.d("MainActivity", "Task deleted"))
-                        .addOnFailureListener(e -> Log.w("MainActivity", "Error deleting task", e));
+                int position = viewHolder.getAdapterPosition();
+                DocumentSnapshot snapshot = taskAdapter.getSnapshots().getSnapshot(position);
+                String taskName = snapshot.getString("taskName");
+
+                // Hiển thị dialog xác nhận
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Xác nhận xóa")
+                        .setMessage("Bạn có chắc muốn xóa công việc: " + taskName + "?")
+                        .setPositiveButton("Có", (dialog, which) -> {
+                            // Xóa task nếu người dùng đồng ý
+                            db.collection("tasks").document(snapshot.getId()).delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(MainActivity.this, "Đã xóa công việc", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(MainActivity.this, "Lỗi khi xóa công việc", Toast.LENGTH_SHORT).show();
+                                        taskAdapter.notifyItemChanged(position); // Khôi phục item nếu có lỗi
+                                    });
+                        })
+                        .setNegativeButton("Không", (dialog, which) -> {
+                            // Khôi phục item nếu người dùng không đồng ý
+                            taskAdapter.notifyItemChanged(position);
+                        })
+                        .setCancelable(false)
+                        .show();
+            }
+
+            // Thêm màu nền và icon khi swipe
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder,
+                                    float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_light))
+                        .addSwipeLeftActionIcon(R.drawable.ic_delete)
+                        .addSwipeLeftLabel("XÓA")
+                        .setSwipeLeftLabelColor(ContextCompat.getColor(MainActivity.this, android.R.color.white))
+                        .create()
+                        .decorate();
+
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
         }).attachToRecyclerView(recyclerView);
     }

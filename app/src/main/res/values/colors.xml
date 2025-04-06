@@ -5,4 +5,6 @@
     <color name="purple_500">#9C27B0</color>
     <color name="gray">#808080</color>
     <color name="primary_color">#4CAF50</color>
+    <color name="swipe_delete_background">#F44336</color>
+    <color name="swipe_delete_text">#FFFFFF</color>
 </resources>

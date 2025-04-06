@@ -1,4 +1,4 @@
-package com.example.finaltask;
+package com.example.finaltask.notification;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -11,6 +11,9 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 
 import androidx.core.app.NotificationCompat;
+
+import com.example.finaltask.MainActivity;
+import com.example.finaltask.R;
 
 public class ReminderReceiver extends BroadcastReceiver {
 

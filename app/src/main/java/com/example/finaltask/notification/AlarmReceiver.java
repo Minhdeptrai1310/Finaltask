@@ -1,4 +1,4 @@
-package com.example.finaltask;
+package com.example.finaltask.notification;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -9,8 +9,15 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
+import android.content.pm.PackageManager;
+
+import com.example.finaltask.MainActivity;
+import com.example.finaltask.R;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
@@ -18,9 +25,17 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        // Kiểm tra quyền thông báo trên Android 13 trở lên
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                Log.d("AlarmReceiver", "Permission not granted for notifications");
+                return;  // Nếu quyền không được cấp, không gửi thông báo
+            }
+        }
+
         // Tạo Intent để mở ứng dụng khi người dùng nhấn vào thông báo
         Intent mainIntent = new Intent(context, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         // Tạo notification
         Notification notification = new NotificationCompat.Builder(context, "task_channel")
@@ -50,6 +65,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             if (mediaPlayer != null) {
                 mediaPlayer.setLooping(true); // Bật lặp lại âm thanh
                 mediaPlayer.start();
+                Log.d("AlarmReceiver", "MediaPlayer started!");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -61,6 +77,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
             mediaPlayer.release();
+            Log.d("AlarmReceiver", "MediaPlayer stopped!");
         }
     }
 }
