@@ -4,6 +4,8 @@
 
     <!-- Thêm quyền truy cập Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" android:maxSdkVersion="33" />
 
     <application
         android:allowBackup="true"

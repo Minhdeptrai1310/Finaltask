@@ -54,8 +54,9 @@ public class RegisterActivity extends AppCompatActivity {
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    Toast.makeText(this, "Tạo tài khoản thành công", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                    mAuth.signOut(); // Đăng xuất ngay sau khi tạo tài khoản
+                    Toast.makeText(this, "Tạo tài khoản thành công. Vui lòng đăng nhập lại.", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(RegisterActivity.this, LoginActivity.class)); // Chuyển về màn hình đăng nhập
                     finish();
                 })
                 .addOnFailureListener(e ->

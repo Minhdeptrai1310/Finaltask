@@ -30,6 +30,8 @@
     <string name="reset_password_request_desc">Gửi yêu cầu đặt lại mật khẩu</string>
     <string name="back_to_login">Quay lại Đăng nhập</string>
     <string name="back_to_login_desc">Quay lại trang đăng nhập</string>
+    <string name="sign_out_button">Sign Out</string>
+    <string name="user_email_label">User Email</string>
     <string-array name="task_categories">
         <item>Sức khỏe</item>
         <item>Công việc</item>

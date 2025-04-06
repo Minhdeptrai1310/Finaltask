@@ -3,6 +3,8 @@ package com.example.finaltask;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -108,5 +110,23 @@ public class AddNewTask extends Activity {
         resultIntent.putExtra("new_task", newTask);
         setResult(RESULT_OK, resultIntent);
         finish();
+
+        // Cài đặt AlarmManager để thông báo khi đến giờ
+        setAlarm(calendar);
+    }
+
+    private void setAlarm(Calendar calendar) {
+        // Tạo Intent để gọi AlarmReceiver khi đến giờ
+        Intent intent = new Intent(this, AlarmReceiver.class);
+
+        // Tạo PendingIntent và chỉ định mutability flag
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+        // Sử dụng AlarmManager để lên lịch báo thức
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        if (alarmManager != null) {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+            Toast.makeText(this, "Thông báo đã được cài đặt!", Toast.LENGTH_SHORT).show();
+        }
     }
 }

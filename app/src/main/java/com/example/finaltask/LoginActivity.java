@@ -8,10 +8,13 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etEmail, etPassword;
     private Button btnLogin, btnRegister, btnForgotPassword;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +28,8 @@ public class LoginActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister); // Nút Đăng ký
         btnForgotPassword = findViewById(R.id.btnForgotPassword); // Nút Quên mật khẩu
 
+        mAuth = FirebaseAuth.getInstance();
+
         // Đặt sự kiện cho nút đăng nhập
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -35,16 +40,16 @@ public class LoginActivity extends AppCompatActivity {
                 if (email.isEmpty() || password.isEmpty()) {
                     Toast.makeText(LoginActivity.this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Kiểm tra thông tin đăng nhập (giả sử bạn đang kiểm tra với email và password cụ thể)
-                    if (email.equals("user@example.com") && password.equals("password")) {
-                        // Đăng nhập thành công, chuyển hướng đến MainActivity
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        startActivity(intent);
-                        finish(); // Đóng màn hình đăng nhập khi đã chuyển đến MainActivity
-                    } else {
-                        // Thông báo sai thông tin đăng nhập
-                        Toast.makeText(LoginActivity.this, "Sai thông tin đăng nhập", Toast.LENGTH_SHORT).show();
-                    }
+                    mAuth.signInWithEmailAndPassword(email, password)
+                            .addOnSuccessListener(authResult -> {
+                                Toast.makeText(LoginActivity.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                startActivity(intent);
+                                finish(); // Đóng màn hình đăng nhập
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(LoginActivity.this, "Lỗi đăng nhập: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
                 }
             }
         });
