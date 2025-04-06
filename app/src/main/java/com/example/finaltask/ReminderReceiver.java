@@ -12,7 +12,7 @@ import android.net.Uri;
 
 import androidx.core.app.NotificationCompat;
 
-public class AlarmReceiver extends BroadcastReceiver {
+public class ReminderReceiver extends BroadcastReceiver {
 
     private static MediaPlayer mediaPlayer;
 
@@ -45,7 +45,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
 
         try {
-            // Khởi tạo MediaPlayer để phát âm thanh báo thức
             mediaPlayer = MediaPlayer.create(context, alarmUri);
             if (mediaPlayer != null) {
                 mediaPlayer.setLooping(true); // Bật lặp lại âm thanh

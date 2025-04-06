@@ -31,6 +31,11 @@
         <activity android:name=".MainActivity"></activity>
         <activity android:name=".RegisterActivity"></activity>
         <activity android:name=".ForgetActivity"></activity>
+        <receiver
+        android:name=".ReminderReceiver"
+        android:enabled="true"
+        android:exported="false" /> <!-- export=false để ngăn việc nhận từ các ứng dụng khác -->
+
 
     </application>
 </manifest>
