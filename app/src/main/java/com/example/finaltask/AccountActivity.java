@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.finaltask.login.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class AccountActivity extends AppCompatActivity {
@@ -31,10 +32,12 @@ public class AccountActivity extends AppCompatActivity {
         // Xử lý sự kiện đăng xuất
         btnSignOut.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
-            // Quay lại MainActivity sau khi đăng xuất
-            Intent intent = new Intent(AccountActivity.this, MainActivity.class);
+
+            // Chuyển đến LoginActivity và xóa stack Activity cũ
+            Intent intent = new Intent(AccountActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK); // Xóa toàn bộ stack
             startActivity(intent);
-            finish();  // Đảm bảo không quay lại được AccountActivity sau khi đăng xuất
+            finish(); // Đóng AccountActivity
         });
     }
 }

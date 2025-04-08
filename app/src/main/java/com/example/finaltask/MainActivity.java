@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private TextView tvDate;
     private FloatingActionButton fabAddTask;
-    private Button btnAccount;  // Khai báo nút btnAccount
+    private Button btnAccount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

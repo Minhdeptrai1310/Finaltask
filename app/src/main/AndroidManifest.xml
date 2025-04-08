@@ -26,6 +26,7 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".AccountActivity" />
         <activity android:name=".AddNewTask"/>
         <activity android:name=".MainActivity"></activity>
         <activity android:name=".login.RegisterActivity"></activity>
