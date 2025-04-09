@@ -26,7 +26,9 @@ import com.google.firebase.firestore.Query;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
@@ -100,6 +102,70 @@ public class MainActivity extends AppCompatActivity {
 
         taskAdapter = new TaskAdapter(options);
         recyclerView.setAdapter(taskAdapter);
+    }
+
+    private void updateCategoryCounts() {
+        // Khởi tạo biến đếm
+        Map<String, Integer> categoryCounts = new HashMap<>();
+        categoryCounts.put("Sức khỏe", 0);
+        categoryCounts.put("Công việc", 0);
+        categoryCounts.put("Sức khỏe tinh thần", 0);
+        categoryCounts.put("Khác", 0);
+
+        // Lấy dữ liệu từ Firestore
+        db.collection("tasks")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
+                        String category = snapshot.getString("taskCategory");
+                        if (categoryCounts.containsKey(category)) {
+                            categoryCounts.put(category, categoryCounts.get(category) + 1);
+                        }
+                    }
+                    // Cập nhật UI
+                    updateCategoryButtons(categoryCounts);
+                });
+    }
+
+    private void updateCategoryButtons(Map<String, Integer> counts) {
+        Button btnHealth = findViewById(R.id.btnHealth);
+        btnHealth.setText("Sức khỏe: " + counts.get("Sức khỏe"));
+
+        Button btnWork = findViewById(R.id.btnWork);
+        btnWork.setText("Công việc: " + counts.get("Công việc"));
+
+        Button btnMental = findViewById(R.id.btnMental);
+        btnMental.setText("Sức khỏe tinh thần: " + counts.get("Sức khỏe tinh thần"));
+
+        Button btnOthers = findViewById(R.id.btnOthers);
+        btnOthers.setText("Khác: " + counts.get("Khác"));
+    }
+
+    // Trong MainActivity.java
+    private void setupCategoryButtons() {
+        Button btnHealth = findViewById(R.id.btnHealth);
+        btnHealth.setOnClickListener(v -> filterTasksByCategory("Sức khỏe"));
+
+        Button btnWork = findViewById(R.id.btnWork);
+        btnWork.setOnClickListener(v -> filterTasksByCategory("Công việc"));
+
+        Button btnMental = findViewById(R.id.btnMental);
+        btnMental.setOnClickListener(v -> filterTasksByCategory("Sức khỏe tinh thần"));
+
+        Button btnOthers = findViewById(R.id.btnOthers);
+        btnOthers.setOnClickListener(v -> filterTasksByCategory("Khác"));
+    }
+
+    private void filterTasksByCategory(String category) {
+        Query query = db.collection("tasks")
+                .whereEqualTo("taskCategory", category)
+                .orderBy("taskDateTime", Query.Direction.ASCENDING);
+
+        FirestoreRecyclerOptions<Task> options = new FirestoreRecyclerOptions.Builder<Task>()
+                .setQuery(query, Task.class)
+                .build();
+
+        taskAdapter.updateOptions(options); // Cập nhật Adapter với query mới
     }
 
     private void setupSwipeToDelete() {
@@ -177,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         taskAdapter.startListening();
+        updateCategoryCounts();
     }
 
     @Override

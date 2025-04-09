@@ -7,9 +7,6 @@
     tools:context=".MainActivity">
 
     <!-- Nút tài khoản -->
-
-    <!-- Tiêu đề ngày tháng -->
-
     <Button
         android:id="@+id/btnAccount"
         android:layout_width="wrap_content"
@@ -22,6 +19,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Tiêu đề ngày tháng -->
     <TextView
         android:id="@+id/tvDate"
         android:layout_width="wrap_content"
@@ -47,29 +45,30 @@
         app:layout_constraintTop_toBottomOf="@id/tvDate">
 
         <!-- Sức khỏe -->
-        <TextView
-            android:id="@+id/tvHealth"
+        <Button
+            android:id="@+id/btnHealth"
             android:layout_width="0dp"
             android:layout_height="89dp"
             android:layout_rowWeight="1"
             android:layout_columnWeight="1"
             android:layout_margin="8dp"
-            android:background="@drawable/rounded_txtview"
+            android:backgroundTint="@color/suckhoe"
             android:gravity="start|bottom"
             android:padding="16dp"
             android:text="@string/health"
             android:textColor="#000000"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            tools:ignore="TouchTargetSizeCheck"/>
 
         <!-- Công việc -->
-        <TextView
-            android:id="@+id/tvWork"
+        <Button
+            android:id="@+id/btnWork"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_rowWeight="1"
             android:layout_columnWeight="1"
             android:layout_margin="8dp"
-            android:background="@drawable/congviec"
+            android:backgroundTint="@color/congviec"
             android:gravity="start|bottom"
             android:padding="16dp"
             android:text="@string/work"
@@ -77,14 +76,14 @@
             android:textSize="12sp" />
 
         <!-- Sức khỏe tinh thần -->
-        <TextView
-            android:id="@+id/tvMental"
+        <Button
+            android:id="@+id/btnMental"
             android:layout_width="0dp"
             android:layout_height="92dp"
             android:layout_rowWeight="1"
             android:layout_columnWeight="1"
             android:layout_margin="8dp"
-            android:background="@drawable/mentalhealth"
+            android:backgroundTint="@color/suckhoetinhthan"
             android:gravity="start|bottom"
             android:padding="16dp"
             android:text="@string/mental"
@@ -92,14 +91,14 @@
             android:textSize="12sp" />
 
         <!-- Khác -->
-        <TextView
-            android:id="@+id/tvOthers"
+        <Button
+            android:id="@+id/btnOthers"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_rowWeight="1"
             android:layout_columnWeight="1"
             android:layout_margin="8dp"
-            android:background="@drawable/other"
+            android:backgroundTint="@color/khac"
             android:gravity="start|bottom"
             android:padding="16dp"
             android:text="@string/others"

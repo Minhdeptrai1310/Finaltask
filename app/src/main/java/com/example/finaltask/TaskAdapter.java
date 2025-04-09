@@ -49,4 +49,8 @@ public class TaskAdapter extends FirestoreRecyclerAdapter<Task, TaskAdapter.Task
             taskName.setText(itemView.getContext().getString(R.string.task_name_default));
         }
     }
+
+    public void updateOptions(FirestoreRecyclerOptions<Task> newOptions) {
+        super.updateOptions(newOptions);
+    }
 }
