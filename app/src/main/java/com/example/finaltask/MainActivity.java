@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, AccountActivity.class); // Mở AccountActivity
             startActivity(intent);  // Bắt đầu Activity mới
         });
+        setupCategoryButtons();
     }
 
     private void setupRecyclerView() {
@@ -192,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
                             db.collection("tasks").document(snapshot.getId()).delete()
                                     .addOnSuccessListener(aVoid -> {
                                         Toast.makeText(MainActivity.this, "Đã xóa công việc", Toast.LENGTH_SHORT).show();
+                                        updateCategoryCounts(); // CẬP NHẬT LẠI SỐ LƯỢNG SAU KHI XÓA
                                     })
                                     .addOnFailureListener(e -> {
                                         Toast.makeText(MainActivity.this, "Lỗi khi xóa công việc", Toast.LENGTH_SHORT).show();
@@ -231,10 +233,11 @@ public class MainActivity extends AppCompatActivity {
             Task newTask = (Task) data.getSerializableExtra("new_task");
             if (newTask != null) {
                 db.collection("tasks").add(newTask)
-                        .addOnSuccessListener(documentReference ->
-                                Log.d("MainActivity", "Document added with ID: " + documentReference.getId()))
-                        .addOnFailureListener(e ->
-                                Log.w("MainActivity", "Error adding document", e));
+                        .addOnSuccessListener(documentReference -> {
+                            Log.d("MainActivity", "Document added with ID: " + documentReference.getId());
+                            updateCategoryCounts(); // Cập nhật lại số lượng
+                        })
+                        .addOnFailureListener(e -> Log.w("MainActivity", "Error adding document", e));
             }
         }
     }
