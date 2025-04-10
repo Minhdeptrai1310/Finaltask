@@ -15,14 +15,12 @@ import com.google.firebase.firestore.DocumentSnapshot;
 
 public class TaskAdapter extends FirestoreRecyclerAdapter<Task, TaskAdapter.TaskViewHolder> {
 
-    // Interface callback cho sự kiện long-click (chia sẻ)
     public interface OnItemLongClickListener {
-        void onItemLongClick(@NonNull DocumentSnapshot snapshot);
+        void onItemLongClick(DocumentSnapshot snapshot, int position);
     }
 
     private OnItemLongClickListener longClickListener;
 
-    // Setter để thiết lập listener
     public void setOnItemLongClickListener(OnItemLongClickListener listener) {
         this.longClickListener = listener;
     }
@@ -32,51 +30,37 @@ public class TaskAdapter extends FirestoreRecyclerAdapter<Task, TaskAdapter.Task
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull TaskViewHolder holder, int position, @NonNull Task task) {
-        // Bind Task object to ViewHolder
-        holder.taskName.setText(task.getTaskName());
-        holder.taskDateTime.setText(task.getTaskDateTime());
-        holder.taskCategory.setText(task.getTaskCategory());
-
-        // Xử lý trạng thái checkbox nếu cần
-        holder.taskName.setChecked(false); // Cập nhật logic theo nhu cầu
-
-        // Thêm sự kiện long-click cho itemView để chia sẻ công việc
-        holder.itemView.setOnLongClickListener(v -> {
-            if (longClickListener != null) {
-                // Lấy DocumentSnapshot của item tại vị trí hiện tại
-                DocumentSnapshot snapshot = getSnapshots().getSnapshot(holder.getAdapterPosition());
-                longClickListener.onItemLongClick(snapshot);
-                return true;
-            }
-            return false;
-        });
+    protected void onBindViewHolder(@NonNull TaskViewHolder holder, int position, @NonNull Task model) {
+        holder.bind(model);
     }
 
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.each_task, parent, false);
-        return new TaskViewHolder(view);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.each_task, parent, false);
+        return new TaskViewHolder(v);
     }
 
-    public static class TaskViewHolder extends RecyclerView.ViewHolder {
-        MaterialCheckBox taskName;
-        TextView taskDateTime;
-        TextView taskCategory;
+    class TaskViewHolder extends RecyclerView.ViewHolder {
+        TextView tvName, tvDate;
 
-        public TaskViewHolder(@NonNull View itemView) {
+        public TaskViewHolder(View itemView) {
             super(itemView);
-            taskName = itemView.findViewById(R.id.taskName);
-            taskDateTime = itemView.findViewById(R.id.taskDateTime);
-            taskCategory = itemView.findViewById(R.id.taskCategory);
+            tvName = itemView.findViewById(R.id.taskName);
+            tvDate = itemView.findViewById(R.id.taskDateTime);
 
-            taskName.setText(itemView.getContext().getString(R.string.task_name_default));
+            itemView.setOnLongClickListener(v -> {
+                int position = getBindingAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && longClickListener != null) {
+                    longClickListener.onItemLongClick(getSnapshots().getSnapshot(position), position);
+                }
+                return true;
+            });
         }
-    }
 
-    public void updateOptions(FirestoreRecyclerOptions<Task> newOptions) {
-        super.updateOptions(newOptions);
+        public void bind(Task task) {
+            tvName.setText(task.getTaskName());
+            tvDate.setText(task.getTaskDateTime());
+        }
     }
 }

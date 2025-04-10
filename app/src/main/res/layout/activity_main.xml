@@ -17,7 +17,6 @@
         android:padding="8dp"
         android:text="Tài khoản"
         android:textSize="12sp"
-        android:onClick="openAccountActivity"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
