@@ -40,5 +40,9 @@
             android:enabled="true"
             android:exported="false" />
 
+        <receiver
+            android:name=".notification.DismissReceiver"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 </manifest>
