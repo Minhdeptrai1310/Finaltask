@@ -19,14 +19,13 @@ public class AccountActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_account);
+        setContentView(R.layout.activity_account);  // Layout cho AccountActivity
 
-        // Ánh xạ view từ layout
+        // Ánh xạ các view
         tvUserEmail = findViewById(R.id.tvUserEmail);
         tvUserId = findViewById(R.id.tvUserId);
         btnSignOut = findViewById(R.id.btnSignOut);
 
-        // Lấy thông tin người dùng từ FirebaseAuth
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         if (user != null) {
@@ -34,13 +33,13 @@ public class AccountActivity extends AppCompatActivity {
             tvUserId.setText("User ID: " + user.getUid());
         }
 
-        // Xử lý nút đăng xuất
+        // Xử lý sự kiện đăng xuất
         btnSignOut.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
 
-            // Chuyển về màn hình đăng nhập và xóa stack Activity cũ
+            // Chuyển đến LoginActivity và xóa stack Activity cũ
             Intent intent = new Intent(AccountActivity.this, LoginActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
             finish();
         });
