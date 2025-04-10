@@ -1,10 +1,10 @@
 package com.example.finaltask;
 
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.app.DatePickerDialog;
-import android.app.PendingIntent;
 import android.app.TimePickerDialog;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -12,16 +12,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 
 import com.example.finaltask.notification.AlarmReceiver;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
 
 public class AddNewTask extends Activity {
 
@@ -43,21 +38,28 @@ public class AddNewTask extends Activity {
 
         calendar = Calendar.getInstance();
 
+        // Thiết lập Spinner với danh sách category
         setupSpinner();
+
+        // Xử lý chọn ngày/giờ
         etTaskDate.setOnClickListener(v -> showDateTimePicker());
+
+        // Xử lý lưu task
         btnSave.setOnClickListener(v -> saveTaskToFirestore());
     }
 
+    // Thiết lập Spinner từ mảng string resource
     private void setupSpinner() {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 this,
-                R.array.task_categories,
+                R.array.task_categories, // Đảm bảo mảng này khớp với Firestore
                 android.R.layout.simple_spinner_item
         );
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spCategory.setAdapter(adapter);
     }
 
+    // Hiển thị dialog chọn ngày và giờ
     private void showDateTimePicker() {
         new DatePickerDialog(
                 this,
@@ -81,51 +83,43 @@ public class AddNewTask extends Activity {
         ).show();
     }
 
+    // Cập nhật hiển thị ngày giờ đã chọn
     private void updateDateTimeDisplay() {
         String dateTimeFormat = "dd MMMM yyyy HH:mm";
         SimpleDateFormat sdf = new SimpleDateFormat(dateTimeFormat, Locale.getDefault());
         etTaskDate.setText(sdf.format(calendar.getTime()));
     }
 
+    // Lưu task vào Firestore và cài đặt thông báo
     private void saveTaskToFirestore() {
         String taskName = etTaskName.getText().toString().trim();
-        String taskCategory = spCategory.getSelectedItem().toString();
+        String taskCategory = spCategory.getSelectedItem().toString(); // Lấy category từ Spinner
         String taskDateTime = new SimpleDateFormat("dd MMMM yyyy HH:mm", Locale.getDefault())
                 .format(calendar.getTime());
 
+        // Validate dữ liệu
         if (taskName.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập tên công việc", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) {
-            Toast.makeText(this, "Người dùng chưa đăng nhập", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Tạo task và gán dữ liệu
+        // Tạo task object và gán giá trị
         Task newTask = new Task();
         newTask.setTaskName(taskName);
-        newTask.setTaskCategory(taskCategory);
+        newTask.setTaskCategory(taskCategory); // Lưu category đúng định dạng
         newTask.setTaskDateTime(taskDateTime);
-        newTask.setUserId(currentUser.getUid());
 
-        // Tạo danh sách sharedWithOrOwner gồm userId và email
-        List<String> sharedWithOrOwner = new ArrayList<>();
-        sharedWithOrOwner.add(currentUser.getUid());
-        sharedWithOrOwner.add(currentUser.getEmail());
-        newTask.setSharedWithOrOwner(sharedWithOrOwner);
-
-        // Gửi task về MainActivity để thêm vào Firestore
+        // Trả kết quả về MainActivity (nếu cần)
         Intent resultIntent = new Intent();
         resultIntent.putExtra("new_task", newTask);
         setResult(RESULT_OK, resultIntent);
         finish();
 
+        // Cài đặt thông báo
         setAlarm(calendar);
     }
 
+    // Cài đặt AlarmManager để hiển thị thông báo khi đến giờ
     private void setAlarm(Calendar calendar) {
         Intent intent = new Intent(this, AlarmReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(

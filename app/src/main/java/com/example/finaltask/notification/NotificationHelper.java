@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import android.content.pm.PackageManager;
@@ -14,48 +15,84 @@ import android.util.Log;
 import com.example.finaltask.R;
 
 public class NotificationHelper {
-    private Context mContext;
+    private final Context mContext;
     private static final String CHANNEL_ID = "task_notifications_channel";
+    private static final String CHANNEL_NAME = "Task Notifications";
+    private static final String CHANNEL_DESCRIPTION = "Channel for task reminders";
 
-    public NotificationHelper(Context context) {
+    public NotificationHelper(@NonNull Context context) {
         this.mContext = context;
+        createNotificationChannel(); // Luôn gọi tạo channel khi khởi tạo
+    }
 
-        // Kiểm tra và tạo NotificationChannel chỉ khi cần thiết (API >= 26)
+    /**
+     * Tạo notification channel cho Android 8.0+
+     */
+    private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+            NotificationManager manager = mContext.getSystemService(NotificationManager.class);
 
-            // Nếu channel chưa được tạo, tạo mới.
-            if (notificationManager != null && notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
-                CharSequence name = "Task Notifications";
-                String description = "Channel for task notifications";
-                int importance = NotificationManager.IMPORTANCE_HIGH;
-                NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-                channel.setDescription(description);
+            // Kiểm tra nếu channel đã tồn tại
+            if (manager.getNotificationChannel(CHANNEL_ID) == null) {
+                NotificationChannel channel = new NotificationChannel(
+                        CHANNEL_ID,
+                        CHANNEL_NAME,
+                        NotificationManager.IMPORTANCE_HIGH
+                );
+                channel.setDescription(CHANNEL_DESCRIPTION);
+                channel.enableVibration(true);
+                channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
-                notificationManager.createNotificationChannel(channel);
+                manager.createNotificationChannel(channel);
+                Log.d("NotificationHelper", "Channel created: " + CHANNEL_ID);
             }
         }
     }
 
-    public void sendNotification(String title, String message) {
-        // Kiểm tra quyền POST_NOTIFICATIONS trên Android 13+ trước khi gửi thông báo
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(mContext, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                Log.d("NotificationHelper", "Permission not granted for notifications");
-                return;  // Nếu quyền không được cấp, không gửi thông báo
-            }
+    /**
+     * Gửi thông báo với tiêu đề và nội dung
+     */
+    public void sendNotification(@NonNull String title, @NonNull String message) {
+        // Kiểm tra quyền trên Android 13+
+        if (!hasNotificationPermission()) {
+            Log.e("NotificationHelper", "Không có quyền gửi thông báo");
+            return;
         }
 
-        // Nếu quyền đã được cấp, tiếp tục gửi thông báo
-        Notification notification = new NotificationCompat.Builder(mContext, CHANNEL_ID)
+        Notification notification = buildNotification(title, message);
+        NotificationManagerCompat.from(mContext).notify(generateNotificationId(), notification);
+    }
+
+    /**
+     * Kiểm tra quyền thông báo trên Android 13+
+     */
+    private boolean hasNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return ContextCompat.checkSelfPermission(
+                    mContext,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED;
+        }
+        return true; // Dưới Android 13 không cần quyền
+    }
+
+    /**
+     * Xây dựng notification
+     */
+    private Notification buildNotification(String title, String message) {
+        return new NotificationCompat.Builder(mContext, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_launcher_background) // Sử dụng icon hợp lệ
                 .setContentTitle(title)
                 .setContentText(message)
-                .setSmallIcon(R.drawable.baothuc)  // Thay bằng icon của bạn
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .build();
+    }
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
-        notificationManager.notify(1, notification);
+    /**
+     * Tạo ID thông báo duy nhất
+     */
+    private int generateNotificationId() {
+        return (int) System.currentTimeMillis();
     }
 }
