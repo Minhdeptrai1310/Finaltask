@@ -7,6 +7,7 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.EditText;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.annotation.NonNull;
@@ -19,13 +20,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -39,64 +43,55 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvDate;
     private FloatingActionButton fabAddTask;
     private Button btnAccount;
-    private String selectedCategory = null; // Lưu trạng thái category đang chọn
+    private String selectedCategory = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Kiểm tra quyền POST_NOTIFICATIONS trên Android 13 trở lên
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this,
-                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
-                        1);
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
             }
         }
 
-        // Ánh xạ view
         recyclerView = findViewById(R.id.rvTask);
         tvDate = findViewById(R.id.tvDate);
         fabAddTask = findViewById(R.id.FloatingActionButton);
         btnAccount = findViewById(R.id.btnAccount);
 
-        // Cấu hình RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // Khởi tạo Firestore
         db = FirebaseFirestore.getInstance();
 
-        // Cập nhật ngày tháng
         String currentDate = new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
                 .format(Calendar.getInstance().getTime());
         tvDate.setText(currentDate);
 
-        // Thiết lập Firestore Recycler Adapter
         setupRecyclerView();
-
-        // Thiết lập swipe để xóa
         setupSwipeToDelete();
 
-        // Xử lý thêm task mới
         fabAddTask.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddNewTask.class);
             startActivityForResult(intent, 1);
         });
 
-        // Xử lý sự kiện cho nút btnAccount
         btnAccount.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AccountActivity.class);
             startActivity(intent);
         });
 
-        // Thiết lập sự kiện cho các nút category
         setupCategoryButtons();
     }
 
     private void setupRecyclerView() {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String currentUserEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
         Query query = db.collection("tasks")
+                .whereArrayContainsAny("sharedWithOrOwner", java.util.Arrays.asList(currentUserId, currentUserEmail))
                 .orderBy("taskDateTime", Query.Direction.ASCENDING);
 
         FirestoreRecyclerOptions<Task> options = new FirestoreRecyclerOptions.Builder<Task>()
@@ -114,7 +109,11 @@ public class MainActivity extends AppCompatActivity {
         categoryCounts.put("Sức khỏe tinh thần", 0);
         categoryCounts.put("Khác", 0);
 
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String currentUserEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
         db.collection("tasks")
+                .whereArrayContainsAny("sharedWithOrOwner", java.util.Arrays.asList(currentUserId, currentUserEmail))
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
@@ -155,12 +154,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void toggleCategory(String category) {
         if (category.equals(selectedCategory)) {
-            // Nếu click lại vào category đang chọn thì hiển thị tất cả task
             selectedCategory = null;
             resetButtonStates();
             showAllTasks();
         } else {
-            // Chọn category mới
             selectedCategory = category;
             resetButtonStates();
             setButtonSelected(category);
@@ -193,19 +190,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showAllTasks() {
-        Query query = db.collection("tasks")
-                .orderBy("taskDateTime", Query.Direction.ASCENDING);
-
-        FirestoreRecyclerOptions<Task> options = new FirestoreRecyclerOptions.Builder<Task>()
-                .setQuery(query, Task.class)
-                .build();
-
-        taskAdapter.updateOptions(options);
+        setupRecyclerView();
     }
 
     private void filterTasksByCategory(String category) {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String currentUserEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
         Query query = db.collection("tasks")
                 .whereEqualTo("taskCategory", category)
+                .whereArrayContainsAny("sharedWithOrOwner", java.util.Arrays.asList(currentUserId, currentUserEmail))
                 .orderBy("taskDateTime", Query.Direction.ASCENDING);
 
         FirestoreRecyclerOptions<Task> options = new FirestoreRecyclerOptions.Builder<Task>()
@@ -218,9 +212,7 @@ public class MainActivity extends AppCompatActivity {
     private void setupSwipeToDelete() {
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
             @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView,
-                                  @NonNull RecyclerView.ViewHolder viewHolder,
-                                  @NonNull RecyclerView.ViewHolder target) {
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
             }
 
@@ -251,8 +243,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
-                                    @NonNull RecyclerView.ViewHolder viewHolder,
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
                                     float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
                         .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_light))
@@ -267,12 +258,54 @@ public class MainActivity extends AppCompatActivity {
         }).attachToRecyclerView(recyclerView);
     }
 
+    private void showShareDialog(String documentId) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Chia sẻ công việc");
+
+        final EditText input = new EditText(MainActivity.this);
+        input.setHint("Nhập email người nhận");
+        builder.setView(input);
+
+        builder.setPositiveButton("Chia sẻ", (dialog, which) -> {
+            String shareEmail = input.getText().toString().trim();
+            if (!shareEmail.isEmpty()) {
+                shareTask(documentId, shareEmail);
+            } else {
+                Toast.makeText(MainActivity.this, "Vui lòng nhập email", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void shareTask(String documentId, String shareEmail) {
+        db.collection("tasks").document(documentId)
+                .update("sharedWith", com.google.firebase.firestore.FieldValue.arrayUnion(shareEmail),
+                        "sharedWithOrOwner", com.google.firebase.firestore.FieldValue.arrayUnion(shareEmail))
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(MainActivity.this, "Công việc đã được chia sẻ!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(MainActivity.this, "Lỗi chia sẻ công việc: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
             Task newTask = (Task) data.getSerializableExtra("new_task");
             if (newTask != null) {
+                String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                String currentUserEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+                newTask.setUserId(currentUserId);
+
+                List<String> sharedWithOrOwner = new ArrayList<>();
+                sharedWithOrOwner.add(currentUserId);
+                sharedWithOrOwner.add(currentUserEmail);
+                newTask.setSharedWithOrOwner(sharedWithOrOwner);
+
                 db.collection("tasks").add(newTask)
                         .addOnSuccessListener(documentReference -> {
                             Log.d("MainActivity", "Document added with ID: " + documentReference.getId());

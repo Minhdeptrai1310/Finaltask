@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -16,8 +17,9 @@
         android:padding="8dp"
         android:text="Tài khoản"
         android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:onClick="openAccountActivity"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Tiêu đề ngày tháng -->
     <TextView
@@ -31,7 +33,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/btnAccount" />
 
     <GridLayout
         android:id="@+id/gridCategories"
@@ -44,6 +46,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvDate">
 
+        <!-- Các nút trong GridLayout giữ nguyên -->
         <!-- Sức khỏe -->
         <Button
             android:id="@+id/btnHealth"
@@ -113,12 +116,11 @@
         android:layout_height="0dp"
         android:background="@android:color/white"
         android:padding="8dp"
+        android:contentDescription="Danh sách công việc"
         app:layout_constraintBottom_toTopOf="@+id/FloatingActionButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gridCategories"
-        app:layout_constraintVertical_bias="0.5"/>
+        app:layout_constraintTop_toBottomOf="@+id/gridCategories" />
 
     <!-- Nút thêm công việc -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -133,4 +135,5 @@
         app:elevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
