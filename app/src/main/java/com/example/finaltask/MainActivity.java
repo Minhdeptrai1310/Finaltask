@@ -8,7 +8,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.EditText;
-import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.annotation.NonNull;
@@ -28,6 +27,7 @@ import com.google.firebase.firestore.Query;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
         setupRecyclerView();
         setupSwipeToDelete();
-        setupLongClickToShare();
+        setupCategoryButtons();
 
         fabAddTask.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddNewTask.class);
@@ -84,8 +84,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, AccountActivity.class);
             startActivity(intent);
         });
-
-        setupCategoryButtons();
     }
 
     private void setupRecyclerView() {
@@ -93,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
         String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
 
         Query query = db.collection("tasks")
-                .whereArrayContainsAny("sharedWithOrOwner", java.util.Arrays.asList(uid, email))
+                .whereArrayContainsAny("sharedWithOrOwner", Arrays.asList(uid, email))
                 .orderBy("taskDateTime", Query.Direction.ASCENDING);
 
         FirestoreRecyclerOptions<Task> options = new FirestoreRecyclerOptions.Builder<Task>()
@@ -102,6 +100,12 @@ public class MainActivity extends AppCompatActivity {
 
         taskAdapter = new TaskAdapter(options);
         recyclerView.setAdapter(taskAdapter);
+
+        taskAdapter.setOnShareClickListener(snapshot -> {
+            String documentId = snapshot.getId();
+            showShareDialog(documentId);
+        });
+
     }
 
     private void updateCategoryCounts() {
@@ -115,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
 
         db.collection("tasks")
-                .whereArrayContainsAny("sharedWithOrOwner", java.util.Arrays.asList(uid, email))
+                .whereArrayContainsAny("sharedWithOrOwner", Arrays.asList(uid, email))
                 .get()
                 .addOnSuccessListener(snapshots -> {
                     for (DocumentSnapshot doc : snapshots) {
@@ -177,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
 
         Query query = db.collection("tasks")
                 .whereEqualTo("taskCategory", category)
-                .whereArrayContainsAny("sharedWithOrOwner", java.util.Arrays.asList(uid, email))
+                .whereArrayContainsAny("sharedWithOrOwner", Arrays.asList(uid, email))
                 .orderBy("taskDateTime", Query.Direction.ASCENDING);
 
         FirestoreRecyclerOptions<Task> options = new FirestoreRecyclerOptions.Builder<Task>()
@@ -229,12 +233,6 @@ public class MainActivity extends AppCompatActivity {
         }).attachToRecyclerView(recyclerView);
     }
 
-    private void setupLongClickToShare() {
-        taskAdapter.setOnItemLongClickListener((documentSnapshot, position) -> {
-            showShareDialog(documentSnapshot.getId());
-        });
-    }
-
     private void showShareDialog(String documentId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Chia sẻ công việc");
@@ -258,8 +256,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void shareTask(String documentId, String shareEmail) {
         db.collection("tasks").document(documentId)
-                .update("sharedWith", com.google.firebase.firestore.FieldValue.arrayUnion(shareEmail),
-                        "sharedWithOrOwner", com.google.firebase.firestore.FieldValue.arrayUnion(shareEmail))
+                .update(
+                        "sharedWith", com.google.firebase.firestore.FieldValue.arrayUnion(shareEmail),
+                        "sharedWithOrOwner", com.google.firebase.firestore.FieldValue.arrayUnion(shareEmail)
+                )
                 .addOnSuccessListener(aVoid -> Toast.makeText(MainActivity.this, "Đã chia sẻ!", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e -> Toast.makeText(MainActivity.this, "Lỗi chia sẻ: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
