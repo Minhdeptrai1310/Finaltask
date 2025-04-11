@@ -3,6 +3,8 @@ package com.example.finaltask;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
@@ -19,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -39,64 +42,54 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvDate;
     private FloatingActionButton fabAddTask;
     private Button btnAccount;
-    private String selectedCategory = null; // Lưu trạng thái category đang chọn
+    private String selectedCategory = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Kiểm tra quyền POST_NOTIFICATIONS trên Android 13 trở lên
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this,
-                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
-                        1);
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
             }
         }
 
-        // Ánh xạ view
         recyclerView = findViewById(R.id.rvTask);
         tvDate = findViewById(R.id.tvDate);
         fabAddTask = findViewById(R.id.FloatingActionButton);
         btnAccount = findViewById(R.id.btnAccount);
 
-        // Cấu hình RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // Khởi tạo Firestore
         db = FirebaseFirestore.getInstance();
 
-        // Cập nhật ngày tháng
         String currentDate = new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
                 .format(Calendar.getInstance().getTime());
         tvDate.setText(currentDate);
 
-        // Thiết lập Firestore Recycler Adapter
         setupRecyclerView();
-
-        // Thiết lập swipe để xóa
         setupSwipeToDelete();
 
-        // Xử lý thêm task mới
         fabAddTask.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddNewTask.class);
             startActivityForResult(intent, 1);
         });
 
-        // Xử lý sự kiện cho nút btnAccount
         btnAccount.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AccountActivity.class);
             startActivity(intent);
         });
 
-        // Thiết lập sự kiện cho các nút category
         setupCategoryButtons();
     }
 
     private void setupRecyclerView() {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         Query query = db.collection("tasks")
+                .whereEqualTo("userId", currentUserId)
                 .orderBy("taskDateTime", Query.Direction.ASCENDING);
 
         FirestoreRecyclerOptions<Task> options = new FirestoreRecyclerOptions.Builder<Task>()
@@ -105,9 +98,12 @@ public class MainActivity extends AppCompatActivity {
 
         taskAdapter = new TaskAdapter(options);
         recyclerView.setAdapter(taskAdapter);
+        taskAdapter.startListening();
     }
 
     private void updateCategoryCounts() {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         Map<String, Integer> categoryCounts = new HashMap<>();
         categoryCounts.put("Sức khỏe", 0);
         categoryCounts.put("Công việc", 0);
@@ -115,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         categoryCounts.put("Khác", 0);
 
         db.collection("tasks")
+                .whereEqualTo("userId", currentUserId)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
@@ -155,12 +152,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void toggleCategory(String category) {
         if (category.equals(selectedCategory)) {
-            // Nếu click lại vào category đang chọn thì hiển thị tất cả task
             selectedCategory = null;
             resetButtonStates();
             showAllTasks();
         } else {
-            // Chọn category mới
             selectedCategory = category;
             resetButtonStates();
             setButtonSelected(category);
@@ -193,18 +188,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showAllTasks() {
-        Query query = db.collection("tasks")
-                .orderBy("taskDateTime", Query.Direction.ASCENDING);
-
-        FirestoreRecyclerOptions<Task> options = new FirestoreRecyclerOptions.Builder<Task>()
-                .setQuery(query, Task.class)
-                .build();
-
-        taskAdapter.updateOptions(options);
+        setupRecyclerView();
     }
 
     private void filterTasksByCategory(String category) {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         Query query = db.collection("tasks")
+                .whereEqualTo("userId", currentUserId)
                 .whereEqualTo("taskCategory", category)
                 .orderBy("taskDateTime", Query.Direction.ASCENDING);
 
@@ -213,6 +204,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         taskAdapter.updateOptions(options);
+        taskAdapter.startListening();
     }
 
     private void setupSwipeToDelete() {
@@ -237,6 +229,11 @@ public class MainActivity extends AppCompatActivity {
                             db.collection("tasks").document(snapshot.getId()).delete()
                                     .addOnSuccessListener(aVoid -> {
                                         Toast.makeText(MainActivity.this, "Đã xóa công việc", Toast.LENGTH_SHORT).show();
+                                        if (selectedCategory == null) {
+                                            setupRecyclerView();
+                                        } else {
+                                            filterTasksByCategory(selectedCategory);
+                                        }
                                         updateCategoryCounts();
                                     })
                                     .addOnFailureListener(e -> {
@@ -245,6 +242,9 @@ public class MainActivity extends AppCompatActivity {
                                     });
                         })
                         .setNegativeButton("Không", (dialog, which) -> {
+                            taskAdapter.notifyItemChanged(position);
+                        })
+                        .setOnCancelListener(dialog -> {
                             taskAdapter.notifyItemChanged(position);
                         })
                         .show();
@@ -268,21 +268,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
     protected void onStart() {
         super.onStart();
-        taskAdapter.startListening();
+        if (taskAdapter != null) taskAdapter.startListening();
         updateCategoryCounts();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        taskAdapter.stopListening();
+        if (taskAdapter != null) taskAdapter.stopListening();
     }
 
     @Override
