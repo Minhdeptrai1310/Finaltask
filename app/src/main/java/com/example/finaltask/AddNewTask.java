@@ -1,10 +1,10 @@
 package com.example.finaltask;
 
 import android.app.Activity;
-import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.app.AlarmManager;
+import android.app.DatePickerDialog;
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -12,14 +12,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import com.example.finaltask.notification.AlarmReceiver;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-import com.example.finaltask.notification.AlarmReceiver;
-
 public class AddNewTask extends Activity {
-
     private EditText etTaskName, etTaskDate;
     private Spinner spCategory;
     private Button btnSave;
@@ -48,18 +50,16 @@ public class AddNewTask extends Activity {
         btnSave.setOnClickListener(v -> saveTaskToFirestore());
     }
 
-    // Thiết lập Spinner từ mảng string resource
     private void setupSpinner() {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 this,
-                R.array.task_categories, // Đảm bảo mảng này khớp với Firestore
+                R.array.task_categories,
                 android.R.layout.simple_spinner_item
         );
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spCategory.setAdapter(adapter);
     }
 
-    // Hiển thị dialog chọn ngày và giờ
     private void showDateTimePicker() {
         new DatePickerDialog(
                 this,
@@ -83,59 +83,67 @@ public class AddNewTask extends Activity {
         ).show();
     }
 
-    // Cập nhật hiển thị ngày giờ đã chọn
     private void updateDateTimeDisplay() {
         String dateTimeFormat = "dd MMMM yyyy HH:mm";
         SimpleDateFormat sdf = new SimpleDateFormat(dateTimeFormat, Locale.getDefault());
         etTaskDate.setText(sdf.format(calendar.getTime()));
     }
 
-    // Lưu task vào Firestore và cài đặt thông báo
     private void saveTaskToFirestore() {
         String taskName = etTaskName.getText().toString().trim();
-        String taskCategory = spCategory.getSelectedItem().toString(); // Lấy category từ Spinner
+        String taskCategory = spCategory.getSelectedItem().toString();
         String taskDateTime = new SimpleDateFormat("dd MMMM yyyy HH:mm", Locale.getDefault())
                 .format(calendar.getTime());
 
-        // Validate dữ liệu
         if (taskName.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập tên công việc", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // Lấy userId từ Firebase
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         // Tạo task object và gán giá trị
         Task newTask = new Task();
         newTask.setTaskName(taskName);
-        newTask.setTaskCategory(taskCategory); // Lưu category đúng định dạng
+        newTask.setTaskCategory(taskCategory);
         newTask.setTaskDateTime(taskDateTime);
+        newTask.setUserId(userId);
 
-        // Trả kết quả về MainActivity (nếu cần)
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra("new_task", newTask);
-        setResult(RESULT_OK, resultIntent);
-        finish();
+        // Thêm task vào Firestore và nhận documentId
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("tasks")
+                .add(newTask)
+                .addOnSuccessListener(documentReference -> {
+                    String documentId = documentReference.getId();
+                    setAlarm(calendar, documentId, taskName); // Truyền documentId và taskName
 
-        // Cài đặt thông báo
-        setAlarm(calendar);
+                    // Trả kết quả về MainActivity
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("new_task", newTask);
+                    setResult(RESULT_OK, resultIntent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Lỗi khi lưu công việc", Toast.LENGTH_SHORT).show();
+                });
     }
 
-    // Cài đặt AlarmManager để hiển thị thông báo khi đến giờ
-    private void setAlarm(Calendar calendar) {
+    private void setAlarm(Calendar calendar, String documentId, String taskName) {
         Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra("documentId", documentId);
+        intent.putExtra("taskName", taskName);
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 this,
-                0,
+                documentId.hashCode(),
                 intent,
-                PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
         );
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         if (alarmManager != null) {
-            alarmManager.setExact(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.getTimeInMillis(),
-                    pendingIntent
-            );
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
             Toast.makeText(this, "Thông báo đã được cài đặt!", Toast.LENGTH_SHORT).show();
         }
     }

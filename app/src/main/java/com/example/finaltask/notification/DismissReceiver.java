@@ -16,9 +16,6 @@ public class DismissReceiver extends BroadcastReceiver {
         AlarmReceiver.stopAlarm();
 
         // Hủy thông báo
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.cancel(notificationId);
-
-        Log.d("DismissReceiver", "Đã tắt thông báo ID: " + notificationId);
+        NotificationManagerCompat.from(context).cancel(notificationId);
     }
 }

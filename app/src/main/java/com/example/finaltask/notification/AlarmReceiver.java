@@ -21,12 +21,15 @@ import androidx.core.content.ContextCompat;
 import com.example.finaltask.MainActivity;
 import com.example.finaltask.R;
 
+// ... giữ nguyên package và import
+
 public class AlarmReceiver extends BroadcastReceiver {
     private static MediaPlayer mediaPlayer;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        // Kiểm tra quyền thông báo trên Android 13+
+        new NotificationHelper(context); // Tạo channel nếu chưa có
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -35,20 +38,15 @@ public class AlarmReceiver extends BroadcastReceiver {
             }
         }
 
-        // Lấy thông tin từ Intent
         String taskName = intent.getStringExtra("taskName");
         String documentId = intent.getStringExtra("documentId");
 
-        // Tạo Intent mở ứng dụng
         Intent mainIntent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                context,
-                0,
-                mainIntent,
+                context, 0, mainIntent,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
         );
 
-        // Tạo Intent cho nút "TẮT"
         Intent dismissIntent = new Intent(context, DismissReceiver.class);
         dismissIntent.putExtra("documentId", documentId);
         PendingIntent dismissPendingIntent = PendingIntent.getBroadcast(
@@ -58,7 +56,6 @@ public class AlarmReceiver extends BroadcastReceiver {
                 PendingIntent.FLAG_IMMUTABLE
         );
 
-        // Tạo thông báo với Channel ID đúng
         Notification notification = new NotificationCompat.Builder(context, "task_notifications_channel")
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("Đến giờ: " + taskName)
@@ -69,11 +66,9 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setAutoCancel(true)
                 .build();
 
-        // Hiển thị thông báo
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.notify(documentId.hashCode(), notification);
+        NotificationManagerCompat.from(context).notify(documentId.hashCode(), notification);
+        Log.d("AlarmReceiver", "Đã gửi thông báo: " + taskName);
 
-        // Phát âm thanh
         playAlarmSound(context);
     }
 

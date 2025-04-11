@@ -9,6 +9,7 @@ public class Task implements Serializable {
     private String taskName;
     private String taskDateTime;
     private String taskCategory;
+    private String userId;
 
     // Constructor mặc định (bắt buộc cho Firestore)
     public Task() {}
@@ -19,6 +20,15 @@ public class Task implements Serializable {
         this.taskDateTime = taskDateTime;
         this.taskCategory = taskCategory;
     }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
 
     // Getter/Setter cho documentId
     public String getDocumentId() {

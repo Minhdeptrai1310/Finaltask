@@ -26,7 +26,8 @@ public class ReminderReceiver extends BroadcastReceiver {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // Tạo notification
-        Notification notification = new NotificationCompat.Builder(context, "task_channel")
+        Notification notification = new NotificationCompat.Builder(context, "task_notifications_channel")
+
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("Đã đến giờ công việc!")
                 .setContentText("Đây là thông báo về công việc của bạn.")

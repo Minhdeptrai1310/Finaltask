@@ -270,17 +270,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == RESULT_OK) {
-            Task newTask = (Task) data.getSerializableExtra("new_task");
-            if (newTask != null) {
-                db.collection("tasks").add(newTask)
-                        .addOnSuccessListener(documentReference -> {
-                            Log.d("MainActivity", "Document added with ID: " + documentReference.getId());
-                            updateCategoryCounts();
-                        })
-                        .addOnFailureListener(e -> Log.w("MainActivity", "Error adding document", e));
-            }
-        }
     }
 
     @Override

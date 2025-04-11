@@ -36,12 +36,12 @@
         android:enabled="true"
         android:exported="false" /> <!-- export=false để ngăn việc nhận từ các ứng dụng khác -->
 
-        <receiver android:name=".notification.AlarmReceiver"
+        <receiver android:name="com.example.finaltask.notification.AlarmReceiver"
             android:enabled="true"
             android:exported="false" />
 
         <receiver
-            android:name=".notification.DismissReceiver"
+            android:name="com.example.finaltask.notification.DismissReceiver"
             android:enabled="true"
             android:exported="false" />
     </application>
